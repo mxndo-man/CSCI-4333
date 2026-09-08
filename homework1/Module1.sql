@@ -122,4 +122,4 @@ select e.employee-name from employee as e where employee-id
 -- 2.10. Find the company that has the most employees.
 -- 2.11. Find the company that has the smallest payroll.
 -- 2.12. Find those companies whose employees earn a higher salary, on
-average, than the average of First Bank Corporation.
+-- average, than the average of First Bank Corporation.

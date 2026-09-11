@@ -1,0 +1,364 @@
+\documentclass[12pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{titling}
+\usepackage{amsmath} % REQUIRED FOR \substack and \begin{aligned}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{1.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.96,0.96,0.94}
+
+\lstdefinestyle{sqlstyle}{
+    language=SQL,
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{blue}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\small,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4
+}
+\lstset{style=sqlstyle}
+
+\title{\textbf{Database Systems Homework}}
+\author{Armando}
+\date{Due: September 11, 2026}
+
+\begin{document}
+\maketitle
+
+\section*{Part 1}
+\textbf{Relations:}
+\begin{itemize}
+    \item \texttt{person(driver-id, name, address)}
+    \item \texttt{car(car-license, model, year)}
+    \item \texttt{accident(report-number, date, location)}
+    \item \texttt{owns(drive-id, car-license)}
+    \item \texttt{participated(driver-id, car-license, report-number, damage amount)}
+\end{itemize}
+
+\subsection*{1.1. Find the total number of people who owned cars that were involved in an accident in 1989}
+\begin{lstlisting}
+SELECT COUNT(DISTINCT "driver-id")
+FROM owns
+WHERE ("driver-id", "car-license") IN (
+  SELECT "driver-id", "car-license" 
+  FROM participated 
+  WHERE "report-number" IN (
+    SELECT "report-number" 
+    FROM accident
+    WHERE date >= '1989-01-01' AND date <= '1989-12-31'
+  )
+);
+\end{lstlisting}
+
+\subsection*{1.2. Find the number of accidents in which the cars belonging to ``John Smith'' were involved.}
+\begin{lstlisting}
+SELECT COUNT(DISTINCT "report-number")
+FROM  participated
+WHERE ("car-license") in (
+  SELECT "car-license" 
+  FROM owns 
+  WHERE "driver-id" in (
+    SELECT "driver-id" 
+    FROM  person 
+    WHERE name = 'John Smith'
+  )
+);
+\end{lstlisting}
+
+\subsection*{1.3. Add a new accident to the database; assume any values for required attributes.}
+\begin{lstlisting}
+INSERT INTO accident("report-number", date, location)
+VALUES ('96723423','2026-05-12','San Benito, Texas, 78586');
+\end{lstlisting}
+
+\subsection*{1.4. Delete the Mazda belonging to ``John Smith''.}
+\begin{lstlisting}
+DELETE FROM car
+WHERE model = 'mazda' AND "car-license" IN (
+  SELECT "car-license" 
+  FROM owns 
+  WHERE "driver-id" IN (
+    SELECT "driver-id" 
+    FROM person 
+    WHERE name = 'John Smith'
+  )
+);
+\end{lstlisting}
+
+\subsection*{1.5. Update the damage amount for the car with license number ``AABB2000'' in the accident with report number ``AR2197'' to \$3000.}
+\begin{lstlisting}
+UPDATE participated
+  SET damage-amount = 3000
+  WHERE participated.car-license = 'AABB200' 
+  AND participated.report-number='AR2197';
+\end{lstlisting}
+
+\newpage
+\section*{Part 2}
+\textbf{Relations:}
+\begin{itemize}
+    \item \texttt{employee(employee-id, employee-name, street, city)}
+    \item \texttt{works(employee-id, company-id, salary)}
+    \item \texttt{company(company-id, company-name, city)}
+    \item \texttt{manages(employee-id, manager-id)}
+\end{itemize}
+
+\subsection*{2.1. Find the names of all employees who work for First Bank Corporation.}
+
+\begin{lstlisting}
+SELECT "employee-name"
+FROM employee
+WHERE "employee-id" in (
+  SELECT "employee-id"
+  FROM works
+  WHERE "company-id" IN (
+    SELECT "company-id" 
+    FROM company 
+    WHERE "company-name" = 'First Bank Corporation'
+  )
+);
+\end{lstlisting}
+
+\subsection*{2.2. Find the names and cities of residence of all employees who work for First Bank Corporation.}
+\begin{lstlisting}
+SELECT "employee-name", city
+FROM employee
+WHERE "employee-id" in (
+  SELECT "employee-id"
+  FROM works
+  WHERE "company-id" IN (
+    SELECT "company-id" 
+    FROM company 
+    WHERE "company-name" = 'First Bank Corporation'
+  )
+);
+\end{lstlisting}
+
+\subsection*{2.3. Find the names, street addresses, and cities of residence of all employees who work for First Bank Corporation and earn more than \$10,000.}
+\begin{lstlisting}
+SELECT "employee-name", street, city
+FROM employee
+WHERE "employee-id" in (
+  SELECT "employee-id"
+  FROM works
+  WHERE salary > 10000 and "company-id" IN (
+    SELECT "company-id" 
+    FROM company 
+    WHERE "company-name" = 'First Bank Corporation'
+  )
+);
+\end{lstlisting}
+
+\subsection*{2.4. Find all employees in the database who live in the same cities as the companies for which they work.}
+\begin{lstlisting}
+SELECT "employee-name"
+FROM employee
+WHERE city IN (
+  SELECT city 
+  FROM company 
+  WHERE "company-id" IN (
+    SELECT "company-id" 
+    FROM works 
+    WHERE employee."employee-id" = works."employee-id"
+  )
+);
+\end{lstlisting}
+
+\subsection*{2.5. Find all employees in the database who live in the same cities and on the same streets as do their managers.}
+\begin{lstlisting}
+SELECT e."employee-name" 
+FROM employee as e, employee as m, manages as mg 
+WHERE e."employee-id" = mg."employee-id"
+  AND m."employee-id" = mg."manager-id"
+  AND e.street = m.street
+  AND e.city = m.city;
+\end{lstlisting}
+
+\subsection*{2.6. Find all employees in the database who do not work for the First Bank Corporation.}
+\begin{lstlisting}
+SELECT "employee-name"
+FROM employee 
+WHERE "employee-id" NOT IN (
+  SELECT "employee-id" 
+  FROM works 
+  WHERE "company-id" IN (
+    SELECT "company-id" 
+    FROM company 
+    WHERE "company-name" = 'First Bank Corporation'
+  )
+);
+\end{lstlisting}
+
+\subsection*{2.7. Find all employees in the database who earn more than each employee of Small Bank Corporation.}
+\begin{lstlisting}
+SELECT "employee-name"
+FROM employee 
+WHERE "employee-id" IN (
+  SELECT "employee-id" 
+  FROM WORKS 
+  WHERE salary > ALL (
+    SELECT salary 
+    FROM works 
+    WHERE "company-id" IN (
+      SELECT "company-id" 
+      FROM company 
+      WHERE "company-name" = "Small Bank Corporation"
+    )
+  )
+);
+\end{lstlisting}
+
+\subsection*{2.8. Assume that the companies may be located in several cities. Find all companies located in every city in which Small Bank Corporation is located.}
+\begin{lstlisting}
+SELECT c."company-name"
+FROM company as c
+WHERE NOT EXISTS (
+  SELECT sbc.city
+  FROM company as sbc
+  WHERE sbc."company-name" = 'Small Bank Corportaion'
+    AND sbc.city NOT IN (
+      SELECT c2.city
+      FROM company as c2
+      WHERE c2."company-name" = c."company-name"
+    )
+);
+\end{lstlisting}
+
+\subsection*{2.9. Find all employees who earn more than the average salary of all employees of their company.}
+\begin{lstlisting}
+SELECT e."employee-name"
+FROM employee as e
+join works as wEmp on wEmp."employee-id" = e."employee-id"
+WHERE works.salary > (
+  SELECT AVG(w.salary)
+  FROM works as w
+  WHERE  wEmp."company-id" = w."company-id"
+);
+\end{lstlisting}
+
+\subsection*{2.10. Find the company that has the most employees.}
+\begin{lstlisting}
+SELECT c."company-name"
+FROM  company as c 
+WHERE c."company-id" in (
+  SELECT "company-id" 
+  FROM  works 
+  GROUP BY "company-id" HAVING COUNT(DISTINCT "employee-id") >= ALL (
+    SELECT COUNT (DISTINCT "employee-id") 
+    FROM works 
+    GROUP BY "company-id"
+  )
+);
+\end{lstlisting}
+
+\subsection*{2.11. Find the company that has the smallest payroll.}
+\begin{lstlisting}
+SELECT c."company-name"
+FROM company as c
+JOIN works as wEmp on wEmp."company-id" = c."company-id"
+GROUP BY c."company-id", c."company-name"
+HAVING sum(wEmp.salary) <= ALL (
+  SELECT SUM (salary)
+  FROM works
+  GROUP BY "company-id"
+);
+\end{lstlisting}
+
+\subsection*{2.12. Find those companies whose employees earn a higher salary, on average, than the average of First Bank Corporation.}
+\begin{lstlisting}
+SELECT c."company-name"
+FROM company as c
+JOIN works as wHigh ON wHigh."company-id" = c."company-id"
+GROUP BY c."company-id", c."company-name"
+HAVING AVG(wHigh.salary) > (
+  SELECT AVG(salary)
+  FROM works
+  WHERE "company-id" IN (
+    SELECT "company-id" 
+    FROM company 
+    WHERE "company-name" = 'First Bank Corporation'
+  )
+);
+\end{lstlisting}
+
+\subsection*{3.1 Relational algebra expression, Tuple relational calculus, domain relational calculus expression}
+\textbf{1}
+\[
+\pi_{\text{employee.employee-name}} \left( 
+    \sigma_{\substack{
+        \text{employee.employee-id}=\text{works.employee-id} \wedge \\
+        \text{works.company-id}=\text{company.company-id} \wedge \\
+        \text{company.company-name}=\text{'First Bank Corporation'}
+    }} 
+    (\text{employee} \times \text{company} \times \text{works}) 
+\right)
+\]
+\textbf{2}
+\[
+\begin{aligned}
+\{ t \mid \exists e \in \text{employee}, w \in \text{works}, c \in \text{company} \, ( 
+    & t[\text{employee-name}] = e[\text{employee-name}] \land \\
+    & e[\text{employee-id}] = w[\text{employee-id}] \land \\
+    & w[\text{company-id}] = c[\text{company-id}] \land \\
+    & c[\text{company-name}] = \text{'First Bank Corporation'} 
+) \}
+\end{aligned}
+\]
+\textbf{3}
+\[
+\begin{aligned}
+\{ \langle en \rangle \mid \exists eid, st, cy, cid, sal, cc \, ( 
+    & \langle eid, en, st, cy \rangle \in \text{employee} \land \\
+    & \langle eid, cid, sal \rangle \in \text{works} \land \\
+    & \langle cid, \text{'First Bank Corporation'}, cc \rangle \in \text{company} 
+) \}
+\end{aligned}
+\]
+
+\subsection*{3.2 Find the names and cities of residence of all employees who work for
+First Bank Corporation}
+\textbf{1}
+\[
+\pi_{\text{employee.employee-name}, \text{employee.street}} \left( 
+    \sigma_{\substack{
+        \text{employee.employee-id}=\text{works.employee-id} \wedge \\
+        \text{works.company-id}=\text{company.company-id} \wedge \\
+        \text{company.company-name}=\text{'First Bank Corporation'}
+    }} 
+    (\text{employee} \times \text{works} \times \text{company}) 
+\right)
+\]
+\textbf{2}
+\[
+\begin{aligned}
+\{ t \mid \exists e \in \text{employee}, \exists w \in \text{works}, \exists c \in \text{company} \, ( 
+    & t[\text{employee-name}] = e[\text{employee-name}] \land \\
+    & t[\text{city}] = e[\text{city}] \land \\
+    & e[\text{employee-id}] = w[\text{employee-id}] \land \\
+    & w[\text{company-id}] = c[\text{company-id}] \land \\
+    & c[\text{company-name}] = \text{'First Bank Corporation'} 
+) \}
+\end{aligned}
+\]
+\textbf{3}
+
+
+
+\end{document}

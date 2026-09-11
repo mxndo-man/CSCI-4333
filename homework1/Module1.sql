@@ -169,11 +169,83 @@ WHERE "employee-id" IN (
 -- companies located in every city in which Small Bank Corporation is
 -- located.
 SELECT c."company-name"
-FROM company as c, company as sbc
-WHERE sbc."company-name" = 'Small Bank Corportation' and c.city = sbc.city
+FROM company as c
+WHERE NOT EXISTS (
+  SELECT sbc.city
+  FROM company as sbc
+  WHERE sbc."company-name" = 'Small Bank Corportaion'
+    AND sbc.city NOT IN (
+      SELECT c2.city
+      FROM company as c2
+      WHERE c2."company-name" = c."company-name"
+    )
+)
 -- 2.9. Find all employees who earn more than the average salary of all
 -- employees of their company.
+SELECT e."employee-name"
+FROM employee as e
+join works as wEmp on wEmp."employee-id" = e."employee-id"
+WHERE works.salary > (
+  SELECT AVG(w.salary)
+  FROM works as w
+  WHERE  wEmp."company-id" = w."company-id"
+);
 -- 2.10. Find the company that has the most employees.
+-- match company id with works, then just get distinct max count of employee-ids
+SELECT c."company-name"
+FROM  company as c 
+WHERE c."company-id" in (
+  SELECT "company-id" 
+  FROM  works 
+  GROUP BY "company-id" HAVING COUNT(DISTINCT "employee-id") >= ALL (
+    SELECT COUNT (DISTINCT "employee-id") 
+    FROM works 
+    GROUP BY "company-id"));
+
 -- 2.11. Find the company that has the smallest payroll.
+SELECT c."company-name"
+FROM company as c
+JOIN works as wEmp on wEmp."company-id" = c."company-id"
+GROUP BY c."company-id", c."company-name"
+HAVING sum(wEmp.salary) <= ALL (
+  SELECT SUM (salary)
+  FROM works
+  GROUP BY "company-id"
+);
 -- 2.12. Find those companies whose employees earn a higher salary, on
 -- average, than the average of First Bank Corporation.
+SELECT c."company-name"
+FROM company as c
+JOIN works as wHigh ON wHigh."company-id" = c."company-id"
+GROUP BY c."company-id", c."company-name"
+HAVING AVG(wHigh.salary) > (
+  SELECT AVG(salary)
+  FROM works
+  WHERE "company-id" IN (SELECT "company-id" FROM company WHERE "company-name" = 'First Bank Corporation')
+);
+
+-- 3.1. Find the names of all employees who work for First Bank
+-- Corporation.
+
+-- 3.2. Find the names and cities of residence of all employees who work for
+-- First Bank Corporation.
+
+-- 3.3. Find the names, street addresses, and cities of residence of all
+-- employees who work for First Bank Corporation and earn more than
+-- $10,000.
+
+-- 3.4. Find all employees in the database who live in the same cities as the
+-- companies for which they work.
+
+-- 3.5. Find all employees in the database who live in the same cities and
+-- on the same streets as do their managers.
+
+-- 3.6. Find all employees in the database who do not work for the First
+-- Bank Corporation.
+
+-- 3.7. Find all employees in the database who earn more than each
+-- employee of Small Bank Corporation.
+
+-- 3.8. Assume that the companies may be located in several cities. Find all
+-- companies located in every city in which Small Bank Corporation is
+-- located. 

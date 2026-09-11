@@ -223,29 +223,3 @@ HAVING AVG(wHigh.salary) > (
   FROM works
   WHERE "company-id" IN (SELECT "company-id" FROM company WHERE "company-name" = 'First Bank Corporation')
 );
-
--- 3.1. Find the names of all employees who work for First Bank
--- Corporation.
-
--- 3.2. Find the names and cities of residence of all employees who work for
--- First Bank Corporation.
-
--- 3.3. Find the names, street addresses, and cities of residence of all
--- employees who work for First Bank Corporation and earn more than
--- $10,000.
-
--- 3.4. Find all employees in the database who live in the same cities as the
--- companies for which they work.
-
--- 3.5. Find all employees in the database who live in the same cities and
--- on the same streets as do their managers.
-
--- 3.6. Find all employees in the database who do not work for the First
--- Bank Corporation.
-
--- 3.7. Find all employees in the database who earn more than each
--- employee of Small Bank Corporation.
-
--- 3.8. Assume that the companies may be located in several cities. Find all
--- companies located in every city in which Small Bank Corporation is
--- located. 

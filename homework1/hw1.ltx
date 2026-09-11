@@ -360,5 +360,88 @@ First Bank Corporation}
 \textbf{3}
 
 
+\subsection*{3.3 Find the names, street addresses, and cities of residence of all
+employees who work for First Bank Corporation and earn more than \text{$10,000$}}
+\textbf{1}
+\[
+\pi_{\text{employee-name}, \text{street}, \text{city}} \left( 
+    \sigma_{\substack{
+        \text{employee.employee-id}=\text{works.employee-id} \wedge \\
+        \text{works.company-id}=\text{company.company-id} \wedge \\
+        \text{company.company-name}=\text{'First Bank Corporation'} \wedge \\
+        \text{works.salary} > 10000
+    }} 
+    (\text{employee} \times \text{works} \times \text{company}) 
+\right)
+\]
+\textbf{2}
+\[
+\begin{aligned}
+\{ t \mid \exists e \in \text{employee}, \exists w \in \text{works}, \exists c \in \text{company} \, ( 
+    & t[\text{employee-name}] = e[\text{employee-name}] \land \\
+    & t[\text{street}] = e[\text{street}] \land \\
+    & t[\text{city}] = e[\text{city}] \land \\
+    & e[\text{employee-id}] = w[\text{employee-id}] \land \\
+    & w[\text{company-id}] = c[\text{company-id}] \land \\
+    & c[\text{company-name}] = \text{'First Bank Corporation'} \land \\
+    & w[\text{salary}] > 10000 
+) \}
+\end{aligned}
+\]
+\subsection*{3.4}
+\textbf{1}
+\[
+\pi_{employee-name}{\sigma_{employee.city=company.city}(employee \bowtie works \bowtie company)}
+\]
+\textbf{2}
+\[
+\begin{aligned}
+\{ t \mid \exists e \in \text{employee}, \exists w \in \text{works}, \exists c \in \text{company} \, ( 
+    & t[\text{employee-name}] = e[\text{employee-name}] \land \\
+    & e[\text{employee-id}] = w[\text{employee-id}] \land \\
+    & w[\text{company-id}] = c[\text{company-id}] \land \\
+    & c[\text{city}] = e[\text{city}] 
+) \}
+\end{aligned}
+\]
+\subsection*{3.5}
+\textbf{1}
+\[
+\pi_{E.\text{employee-name}} \left( 
+    \sigma_{\substack{
+        E.\text{employee-id} = \text{manages.employee-id} \land \\
+        \text{manages.manager-id} = M.\text{employee-id} \land \\
+        E.\text{street} = M.\text{street} \land \\
+        E.\text{city} = M.\text{city}
+    }} 
+    ( \rho_{E}(\text{employee}) \times \text{manages} \times \rho_{M}(\text{employee}) ) 
+\right)
+\]
+\textbf{2}
+\[
+\begin{aligned}
+\{ t \mid \exists e \in \text{employee}, \exists m \in \text{employee}, \exists mg \in \text{manages} \, ( 
+    & t[\text{employee-name}] = e[\text{employee-name}] \land \\
+    & e[\text{employee-id}] = mg[\text{employee-id}] \land \\
+    & m[\text{employee-id}] = mg[\text{manager-id}] \land \\
+    & e[\text{street}] = m[\text{street}] \land \\
+    & e[\text{city}] = m[\text{city}] 
+) \}
+\end{aligned}
+\]
+
+\subsection*{3.6}
+\[
+\pi_{\text{employee-name}}(\text{employee}) - 
+\pi_{\text{employee-name}} \left( 
+    \sigma_{\substack{
+        \text{employee.employee-id}=\text{works.employee-id} \land \\
+        \text{works.company-id}=\text{company.company-id} \land \\
+        \text{company.company-name}=\text{'First Bank Corporation'}
+    }} 
+    (\text{employee} \times \text{works} \times \text{company}) 
+\right)
+\]
+
 
 \end{document}

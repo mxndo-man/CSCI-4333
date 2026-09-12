@@ -36,7 +36,7 @@
 \lstset{style=sqlstyle}
 
 \title{\textbf{Database Systems Homework}}
-\author{Armando}
+\author{Armando Sanchez : armando.sanchez09@utrgv.edu}
 \date{Due: September 11, 2026}
 
 \begin{document}
@@ -106,8 +106,8 @@ WHERE model = 'mazda' AND "car-license" IN (
 \begin{lstlisting}
 UPDATE participated
   SET damage-amount = 3000
-  WHERE participated.car-license = 'AABB200' 
-  AND participated.report-number='AR2197';
+  WHERE participated."car-license" = 'AABB2000' 
+  AND participated."report-number"='AR2197';
 \end{lstlisting}
 
 \newpage
@@ -358,6 +358,15 @@ First Bank Corporation}
 \end{aligned}
 \]
 \textbf{3}
+\[
+\begin{aligned}
+\{ \langle n, cy \rangle \mid \exists eid, st, cid, s, cc \, ( 
+    & \langle eid, n, st, cy \rangle \in \text{employee} \land \\
+    & \langle eid, cid, s \rangle \in \text{works} \land \\
+    & \langle cid, \text{'First Bank Corporation'}, cc \rangle \in \text{company} 
+) \}
+\end{aligned}
+\]
 
 
 \subsection*{3.3 Find the names, street addresses, and cities of residence of all
@@ -388,7 +397,20 @@ employees who work for First Bank Corporation and earn more than \text{$10,000$}
 ) \}
 \end{aligned}
 \]
-\subsection*{3.4}
+\textbf{3}
+\[
+\begin{aligned}
+\{ \langle e, st, cy \rangle \mid \exists eid, cid, s, c \, ( 
+    & \langle eid, e, st, cy \rangle \in \text{employee} \land \\
+    & \langle eid, cid, s \rangle \in \text{works} \land \\
+    & \langle cid, \text{'First Bank Corporation'}, c \rangle \in \text{company} \land \\
+    & s > 10000 
+) \}
+\end{aligned}
+\]
+
+\subsection*{3.4: Find all employees in the database who live in the same cities as the
+companies for which they work.}
 \textbf{1}
 \[
 \pi_{employee-name}{\sigma_{employee.city=company.city}(employee \bowtie works \bowtie company)}
@@ -404,7 +426,18 @@ employees who work for First Bank Corporation and earn more than \text{$10,000$}
 ) \}
 \end{aligned}
 \]
-\subsection*{3.5}
+\textbf{3}
+\[
+\begin{aligned}
+\{ \langle n \rangle \mid \exists eid, s, cy, mid, mn \, ( 
+    & \langle eid, n, s, cy \rangle \in \text{employee} \land \\
+    & \langle eid, mid \rangle \in \text{manages} \land \\
+    & \langle mid, mn, s, cy \rangle \in \text{employee}
+) \}
+\end{aligned}
+\]
+\subsection*{3.5: Find all employees in the database who live in the same cities and
+on the same streets as do their managers. }
 \textbf{1}
 \[
 \pi_{E.\text{employee-name}} \left( 
@@ -429,8 +462,19 @@ employees who work for First Bank Corporation and earn more than \text{$10,000$}
 ) \}
 \end{aligned}
 \]
+\textbf{3}
+\[
+\begin{aligned}
+\{ \langle en \rangle \mid \exists eid, st, cy, mid, mn \, ( 
+    & \langle eid, en, st, cy \rangle \in \text{employee} \land \\
+    & \langle eid, mid \rangle \in \text{manages} \land \\
+    & \langle mid, mn, st, cy \rangle \in \text{employee}
+) \}
+\end{aligned}
+\]
 
-\subsection*{3.6}
+\subsection*{3.6: Find all employees in the database who do not work for the First
+Bank Corporation.}
 \[
 \pi_{\text{employee-name}}(\text{employee}) - 
 \pi_{\text{employee-name}} \left( 
@@ -442,6 +486,115 @@ employees who work for First Bank Corporation and earn more than \text{$10,000$}
     (\text{employee} \times \text{works} \times \text{company}) 
 \right)
 \]
+
+
+\[
+\begin{aligned}
+\{ t \mid \exists e \in \text{employee} \, ( 
+    & t[\text{employee-name}] = e[\text{employee-name}] \land \\
+    & \neg \exists w \in \text{works}, \exists c \in \text{company} \, ( 
+        e[\text{employee-id}] = w[\text{employee-id}] \land \\
+        & \quad w[\text{company-id}] = c[\text{company-id}] \land \\
+        & \quad c[\text{company-name}] = \text{'First Bank Corporation'} 
+    ) 
+) \}
+\end{aligned}
+\]
+
+\[
+\begin{aligned}
+\{ \langle en \rangle \mid \exists eid, st, cy \, ( 
+    & \langle eid, en, st, cy \rangle \in \text{employee} \land \\
+    & \neg \exists cid, sal, cc \, ( 
+        \langle eid, cid, sal \rangle \in \text{works} \land \\
+        & \quad \langle cid, \text{'First Bank Corporation'}, cc \rangle \in \text{company}
+    ) 
+) \}
+\end{aligned}
+\]
+
+
+\subsection*{3.7: Find all employees in the database who earn more than each
+employee of Small Bank Corporation.}
+\textbf{1} \text{Using the same relationship from the problem 2.12 but without company name}
+\[
+\pi_{\text{employee-name}} \left( 
+    \sigma_{\text{salary} > \text{sbc\_max}} \left( 
+        (\text{employee} \bowtie \text{works}) 
+        \times 
+        \left( \mathcal{G}_{\text{MAX}(\text{salary}) \textbf{ as } \text{sbc\_max}} ( \sigma_{\text{company-name}=\text{'Small Bank Corporation'}} (\text{works} \bowtie \text{company}) ) \right)
+    \right) 
+\right)
+\]
+
+\textbf{2}
+\[
+\begin{aligned}
+\{ t \mid \exists e \in \text{employee}, \exists w \in \text{works} \, ( 
+    & t[\text{employee-name}] = e[\text{employee-name}] \land \\
+    & e[\text{employee-id}] = w[\text{employee-id}] \land \\
+    & \forall w_2 \in \text{works}, \forall c \in \text{company} \, ( 
+        (w_2[\text{company-id}] = c[\text{company-id}] \land \\
+        & c[\text{company-name}] = \text{'Small Bank Corporation'}) \\
+        & \implies w[\text{salary}] > w_2[\text{salary}] 
+    ) 
+) \}
+\end{aligned}
+\]
+\textbf{3}
+\[
+\begin{aligned}
+\{ \langle en \rangle \mid \exists eid, cid, sal, st, cy \, ( 
+    & \langle eid, en, st, cy \rangle \in \text{employee} \land \\
+    & \langle eid, cid, sal \rangle \in \text{works} \land \\
+    & \forall eid_2, cid_2, sal_2, cc \, ( 
+        ( \langle eid_2, cid_2, sal_2 \rangle \in \text{works} \land \\
+        & \langle cid_2, \text{'Small Bank Corporation'}, cc \rangle \in \text{company} ) \\
+        & \implies sal > sal_2 
+    ) 
+) \}
+\end{aligned}
+\]
+
+\subsection*{3.8: Assume that the companies may be located in several cities. Find all
+companies located in every city in which Small Bank Corporation is
+located. }
+\textbf{1}
+\[
+\pi_{\text{company-name}}(\text{company}) - 
+\pi_{\text{company-name}} \left( 
+    \left( \pi_{\text{company-name}}(\text{company}) \times \pi_{\text{city}} \left( \sigma_{\text{company-name}=\text{'Small Bank Corporation'}}(\text{company}) \right) \right) 
+    - \pi_{\text{company-name}, \text{city}}(\text{company}) 
+\right)
+\]
+\textbf{2}
+\[
+\begin{aligned}
+\{ t \mid \exists c \in \text{company} \, ( 
+    & t[\text{company-name}] = c[\text{company-name}] \land \\
+    & \neg \exists s \in \text{company} \, ( 
+        s[\text{company-name}] = \text{'Small Bank Corporation'} \land \\
+        & \neg \exists c_2 \in \text{company} \, ( 
+            c_2[\text{company-name}] = t[\text{company-name}] \land \\
+            c_2[\text{city}] = s[\text{city}] 
+        ) 
+    ) 
+) \}
+\end{aligned}
+\]
+\textbf{3}
+\[
+\begin{aligned}
+\{ \langle cn \rangle \mid \exists cid, cy \, ( 
+    & \langle cid, cn, cy \rangle \in \text{company} \land \\
+    & \forall cid_s, cy_s \, ( 
+        \langle cid_s, \text{'Small Bank Corporation'}, cy_s \rangle \in \text{company} \\
+        & \implies \exists cid_2 \, ( \langle cid_2, cn, cy_s \rangle \in \text{company} ) 
+    ) 
+) \}
+\end{aligned}
+\]
+
 
 
 \end{document}
